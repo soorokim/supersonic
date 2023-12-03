@@ -29,4 +29,4 @@ jobs:
       with:
         context: .
         push: true
-        tags: https://github.com/soorokim/supersonic:${{ github.sha }}
+        tags: soorokim/supersonic:${{ github.sha }}
