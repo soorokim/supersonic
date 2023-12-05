@@ -1,4 +1,4 @@
-name: Build and Push Docker Image
+name: CI
 
 on:
   push:
@@ -24,9 +24,5 @@ jobs:
     - name: Install Dependencies
       run: pnpm install
       
-    - name: Build and Push Docker Image
-      uses: docker/build-push-action@v3
-      with:
-        context: .
-        push: true
-        tags: soorokim/supersonic:${{ github.sha }}
+    - name: Build
+      run: pnpm build
