@@ -46,4 +46,4 @@ jobs:
           GIT_HASH=$(git rev-parse --short HEAD)
           REPO_NAME=${GITHUB_REPOSITORY##*/}
           # 빌드 서버에 SSH 접근하여 빌드 명령 실행
-          ssh -p ${{ secrets.BUILD_SERVER_PORT }} $BUILD_SERVER_USER@$BUILD_SERVER_IP "./build.sh && GIT_HASH=$GIT_HASH REPO_NAME=$REPO_NAME ./update.sh"
+          ssh -p ${{ secrets.BUILD_SERVER_PORT }} $BUILD_SERVER_USER@$BUILD_SERVER_IP "GIT_HASH=$GIT_HASH ./build.sh && GIT_HASH=$GIT_HASH REPO_NAME=$REPO_NAME ./update.sh"
