@@ -30,7 +30,7 @@ jobs:
     - name: Register SSH Host Key
       run: |
         mkdir -p ~/.ssh
-        ssh-keyscan -H ${{ secrets.BUILD_SERVER_IP }} 2>&1 | tee -a ~/.ssh/known_hosts
+        ssh-keyscan -p ${{ secrets.BUILD_SERVER_PORT }} -H ${{ secrets.BUILD_SERVER_IP }} 2>&1 | tee -a ~/.ssh/known_hosts
 
         
     - name: Build on Build Server
@@ -44,4 +44,4 @@ jobs:
         echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
         # 빌드 서버에 SSH 접근하여 빌드 명령 실행
-        ssh $BUILD_SERVER_USER@$BUILD_SERVER_IP "cd /supersonic && git pull origin main && docker build -t supersonic:latest . "
+        ssh -p ${{ secrets.BUILD_SERVER_PORT }} $BUILD_SERVER_USER@$BUILD_SERVER_IP "cd /supersonic && git pull origin main && docker build -t supersonic:latest . "
