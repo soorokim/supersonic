@@ -44,4 +44,4 @@ jobs:
         echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
         # 빌드 서버에 SSH 접근하여 빌드 명령 실행
-        ssh -p ${{ secrets.BUILD_SERVER_PORT }} $BUILD_SERVER_USER@$BUILD_SERVER_IP "cd ~/supersonic && git pull origin main && docker build -t supersonic:latest . "
+        ssh -p ${{ secrets.BUILD_SERVER_PORT }} $BUILD_SERVER_USER@$BUILD_SERVER_IP "cd ~/supersonic && git pull origin main && sudo docker build -t supersonic:latest . "
