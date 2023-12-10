@@ -18,9 +18,6 @@ jobs:
         with:
           node-version: "18"
           
-      - name: Install pnpm
-        run: npm -g install pnpm
-        
       - name: Get PNPM cache directory path
         id: pnpm-cache-dir-path
         run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
@@ -32,6 +29,9 @@ jobs:
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-
+            
+      - name: Install pnpm
+        run: npm -g install pnpm
 
       - name: Install Dependencies
         run: pnpm install
