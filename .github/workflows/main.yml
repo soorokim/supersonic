@@ -38,7 +38,17 @@ jobs:
 
       - name: Build
         run: pnpm build
-
+        
+      - name: Create Sentry release
+        uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJ }}
+          SENTRY_URL: https://sentry.io/
+        with:
+          environment: production
+          sourcemaps: .next
       - name: Register SSH Host Key
         run: |
           mkdir -p ~/.ssh
