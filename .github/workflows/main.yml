@@ -46,7 +46,7 @@ jobs:
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJ }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
           SENTRY_URL: https://sentry.io/
         with:
           environment: production
