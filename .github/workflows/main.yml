@@ -37,6 +37,8 @@ jobs:
         run: pnpm install
 
       - name: Build
+        env:
+          SENTRY_TOKEN: ${{ secrets.SENTRY_TOKEN }}
         run: pnpm build
         
       - name: Create Sentry release
