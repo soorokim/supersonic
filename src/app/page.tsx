@@ -1,5 +1,5 @@
+"use client";
 import { captureException } from "@sentry/nextjs";
-import Image from "next/image";
 
 export default function Home() {
   const onClick = () => {
