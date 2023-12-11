@@ -48,7 +48,7 @@ jobs:
           SENTRY_URL: https://sentry.io/
         with:
           environment: production
-          sourcemaps: .next
+
       - name: Register SSH Host Key
         run: |
           mkdir -p ~/.ssh
