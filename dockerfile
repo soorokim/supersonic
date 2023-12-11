@@ -19,9 +19,6 @@ COPY . .
 # This will do the trick, use the corresponding env file for each environment.
 # COPY .env.development.sample .env.production
 RUN yarn global add pnpm && pnpm build
-RUN curl -sL https://sentry.io/get-cli/ | sh 
-RUN sentry-cli releases new test
-RUN sentry-cli sourcemaps inject .next
 
 # 3. Production image, copy all the files and run next
 FROM base AS runner
