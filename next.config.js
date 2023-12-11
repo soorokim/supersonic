@@ -5,7 +5,6 @@ const nextConfig = {
 
 module.exports = nextConfig;
 
-
 // Injected content via Sentry wizard below
 
 const { withSentryConfig } = require("@sentry/nextjs");
@@ -20,6 +19,7 @@ module.exports = withSentryConfig(
     silent: true,
     org: "supersonic-0b",
     project: "javascript-nextjs",
+    authToken: process.env.SENTRY_TOKEN ?? "",
   },
   {
     // For all available options, see:
