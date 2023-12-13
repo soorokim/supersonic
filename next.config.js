@@ -19,7 +19,7 @@ module.exports = withSentryConfig(
     silent: true,
     org: "supersonic-0b",
     project: "javascript-nextjs",
-    authToken: process.env.SENTRY_TOKEN ?? "",
+    authToken: process.env.SENTRY_TOKEN,
   },
   {
     // For all available options, see:

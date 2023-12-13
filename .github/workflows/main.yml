@@ -17,7 +17,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "18"
-          
+
       - name: Get PNPM cache directory path
         id: pnpm-cache-dir-path
         run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
@@ -29,7 +29,7 @@ jobs:
           key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-
-            
+
       - name: Install pnpm
         run: npm -g install pnpm
 
@@ -38,18 +38,8 @@ jobs:
 
       - name: Build
         env:
-          SENTRY_TOKEN: ${{ secrets.SENTRY_TOKEN }}
-        run: pnpm build
-        
-      - name: Create Sentry release
-        uses: getsentry/action-release@v1
-        env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_TOKEN }}
-          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
-          SENTRY_URL: https://sentry.io/
-        with:
-          environment: production
+        run: pnpm build
 
       - name: Register SSH Host Key
         run: |
