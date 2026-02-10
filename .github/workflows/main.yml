@@ -5,9 +5,16 @@ on:
     branches:
       - main
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - name: Checkout Repository
@@ -32,20 +39,49 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_TOKEN }}
         run: pnpm build
 
-      - name: Register SSH Host Key
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -p ${{ secrets.BUILD_SERVER_PORT }} -H ${{ secrets.BUILD_SERVER_IP }} 2>&1 | tee -a ~/.ssh/known_hosts
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Build on Build Server
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
+            ghcr.io/${{ github.repository }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Update ArgoCD repo
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          BUILD_SERVER_IP: ${{ secrets.BUILD_SERVER_IP }}
-          BUILD_SERVER_USER: ${{ secrets.BUILD_SERVER_USER }}
+          ARGOCD_TOKEN: ${{ secrets.ARGOCD_TOKEN }}
         run: |
-          mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
           GIT_HASH=$(git rev-parse --short HEAD)
-          REPO_NAME=${GITHUB_REPOSITORY##*/}
-          ssh -p ${{ secrets.BUILD_SERVER_PORT }} $BUILD_SERVER_USER@$BUILD_SERVER_IP "GIT_HASH=$GIT_HASH REPO_NAME=$REPO_NAME ./build.sh && GIT_HASH=$GIT_HASH REPO_NAME=$REPO_NAME ./update.sh"
+          FULL_SHA=${{ github.sha }}
+          VALUES=$(curl -sH "Authorization: token $ARGOCD_TOKEN" \
+            "https://api.github.com/repos/soorokim/argocd/contents/supersonic/values.yaml")
+          SHA=$(echo "$VALUES" | jq -r '.sha')
+          echo "$VALUES" | jq -r '.content' | base64 -d | \
+            sed "s|tag: .*|tag: ${FULL_SHA}|" | \
+            sed "s|repository: .*|repository: ghcr.io/soorokim/supersonic|" > /tmp/values.yaml
+          CHART=$(curl -sH "Authorization: token $ARGOCD_TOKEN" \
+            "https://api.github.com/repos/soorokim/argocd/contents/supersonic/Chart.yaml")
+          CHART_SHA=$(echo "$CHART" | jq -r '.sha')
+          echo "$CHART" | jq -r '.content' | base64 -d | \
+            sed "s|version: .*|version: 1.0.0-${GIT_HASH}|" > /tmp/Chart.yaml
+          CONTENT_B64=$(base64 -w0 /tmp/values.yaml)
+          curl -sX PUT -H "Authorization: token $ARGOCD_TOKEN" \
+            "https://api.github.com/repos/soorokim/argocd/contents/supersonic/values.yaml" \
+            -d "{\"message\":\"chore: update supersonic to ${GIT_HASH}\",\"content\":\"${CONTENT_B64}\",\"sha\":\"${SHA}\"}"
+          CHART_B64=$(base64 -w0 /tmp/Chart.yaml)
+          curl -sX PUT -H "Authorization: token $ARGOCD_TOKEN" \
+            "https://api.github.com/repos/soorokim/argocd/contents/supersonic/Chart.yaml" \
+            -d "{\"message\":\"chore: bump chart version to ${GIT_HASH}\",\"content\":\"${CHART_B64}\",\"sha\":\"${CHART_SHA}\"}"
