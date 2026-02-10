@@ -11,32 +11,23 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: "18"
-
-      - name: Get PNPM cache directory path
-        id: pnpm-cache-dir-path
-        run: echo "dir=$(pnpm store path)" >> $GITHUB_OUTPUT
-
-      - uses: actions/cache@v3
-        id: pnpm-cache # use this to check for `cache-hit` (`steps.pnpm-cache.outputs.cache-hit != 'true'`)
-        with:
-          path: ${{ steps.pnpm-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-
+        uses: actions/checkout@v4
 
       - name: Install pnpm
-        run: npm -g install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "pnpm"
 
       - name: Install Dependencies
         run: pnpm install
 
-      - name: Build
+      - name: Build (test)
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_TOKEN }}
         run: pnpm build
@@ -52,12 +43,9 @@ jobs:
           BUILD_SERVER_IP: ${{ secrets.BUILD_SERVER_IP }}
           BUILD_SERVER_USER: ${{ secrets.BUILD_SERVER_USER }}
         run: |
-          # SSH 키 설정
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          # 현재 Git 커밋 해시 가져오기
           GIT_HASH=$(git rev-parse --short HEAD)
           REPO_NAME=${GITHUB_REPOSITORY##*/}
-          # 빌드 서버에 SSH 접근하여 빌드 명령 실행
           ssh -p ${{ secrets.BUILD_SERVER_PORT }} $BUILD_SERVER_USER@$BUILD_SERVER_IP "GIT_HASH=$GIT_HASH REPO_NAME=$REPO_NAME ./build.sh && GIT_HASH=$GIT_HASH REPO_NAME=$REPO_NAME ./update.sh"
