@@ -9,7 +9,7 @@ WORKDIR /app
 
 # Install dependencies based on the preferred package manager
 COPY package.json pnpm-lock.yaml* ./
-RUN yarn global add pnpm && pnpm i;
+RUN yarn global add pnpm@8@8 && pnpm i;
 
 # 2. Rebuild the source code only when needed
 FROM base AS builder
@@ -18,7 +18,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # This will do the trick, use the corresponding env file for each environment.
 # COPY .env.development.sample .env.production
-RUN yarn global add pnpm && pnpm install --frozen-lockfile && pnpm build
+RUN yarn global add pnpm@8@8 && pnpm install --frozen-lockfile && pnpm build
 
 # 3. Production image, copy all the files and run next
 FROM base AS runner
